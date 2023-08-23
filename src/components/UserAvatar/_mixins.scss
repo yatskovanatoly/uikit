@@ -1,0 +1,16 @@
+@mixin size() {
+    $sizes: (
+        'xs': 24px,
+        's': 28px,
+        'm': 32px,
+        'l': 42px,
+        'xl': 50px,
+    );
+
+    @each $size_name, $size_value in $sizes {
+        &_#{$size_name} {
+            width: $size_value;
+            height: $size_value;
+        }
+    }
+}
