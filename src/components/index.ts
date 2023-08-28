@@ -17,7 +17,7 @@ export * from './Disclosure';
 export * from './DropdownMenu';
 export * from './Hotkey';
 export * from './Icon';
-export * from './ImageStack';
+export * from './AvatarStack';
 export * from './Label';
 export * from './Link';
 export * from './List';
