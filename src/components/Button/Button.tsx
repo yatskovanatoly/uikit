@@ -53,8 +53,7 @@ export type ButtonPin =
 
 export type ButtonWidth = 'auto' | 'max';
 
-export interface ButtonProps extends DOMProps, QAProps {
-    /** Button appearance */
+interface ButtonCommonProps<T extends keyof React.JSX.IntrinsicElements> extends DOMProps, QAProps {
     view?: ButtonView;
     size?: ButtonSize;
     pin?: ButtonPin;
@@ -65,27 +64,46 @@ export interface ButtonProps extends DOMProps, QAProps {
     title?: string;
     tabIndex?: number;
     id?: string;
+    children?: React.ReactNode;
+    onClick?: React.JSX.IntrinsicElements[T]['onClick'];
+    onMouseEnter?: React.JSX.IntrinsicElements[T]['onMouseEnter'];
+    onMouseLeave?: React.JSX.IntrinsicElements[T]['onMouseLeave'];
+    onFocus?: React.JSX.IntrinsicElements[T]['onFocus'];
+    onBlur?: React.JSX.IntrinsicElements[T]['onBlur'];
+}
+
+interface ButtonButtonProps extends ButtonCommonProps<'button'> {
     type?: 'button' | 'submit' | 'reset';
-    component?: React.ElementType;
-    href?: string;
+    extraProps?: React.JSX.IntrinsicElements['button'];
+}
+
+interface ButtonLinkProps extends ButtonCommonProps<'a'> {
+    as: never;
+    href: string;
     target?: string;
     rel?: string;
-    extraProps?:
-        | React.ButtonHTMLAttributes<HTMLButtonElement>
-        | React.AnchorHTMLAttributes<HTMLAnchorElement>;
-    onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-    onMouseEnter?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-    onMouseLeave?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-    onFocus?: React.FocusEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-    onBlur?: React.FocusEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-    /** Button content. You can mix button text with `<Icon/>` component */
-    children?: React.ReactNode;
+    extraProps?: React.JSX.IntrinsicElements['a'];
 }
+
+interface ButtonCustomProps<T extends keyof React.JSX.IntrinsicElements>
+    extends ButtonCommonProps<T> {
+    as: T;
+    /**
+     * @deprecated Use "as" prop instead
+     */
+    component?: T;
+    extraProps?: React.JSX.IntrinsicElements[T];
+}
+
+export type ButtonProps<T extends keyof React.JSX.IntrinsicElements = any> =
+    | ButtonButtonProps
+    | ButtonLinkProps
+    | ButtonCustomProps<T>;
 
 const b = block('button');
 
-const ButtonWithHandlers = React.forwardRef<HTMLElement, ButtonProps>(function Button(
-    {
+const ButtonWithHandlers = React.forwardRef<HTMLElement, ButtonProps>(function Button(props, ref) {
+    const {
         view = 'normal',
         size = 'm',
         pin = 'round-round',
@@ -95,12 +113,6 @@ const ButtonWithHandlers = React.forwardRef<HTMLElement, ButtonProps>(function B
         width,
         title,
         tabIndex,
-        type = 'button',
-        component,
-        href,
-        target,
-        rel,
-        extraProps,
         onClick,
         onMouseEnter,
         onMouseLeave,
@@ -111,9 +123,7 @@ const ButtonWithHandlers = React.forwardRef<HTMLElement, ButtonProps>(function B
         style,
         className,
         qa,
-    },
-    ref,
-) {
+    } = props;
     const handleClickCapture = React.useCallback(
         (event: React.SyntheticEvent) => {
             eventBroker.publish({
@@ -154,35 +164,45 @@ const ButtonWithHandlers = React.forwardRef<HTMLElement, ButtonProps>(function B
         ),
         'data-qa': qa,
     };
+    const disabledProp = disabled || loading;
+    const content = prepareChildren(children);
 
-    if (typeof href === 'string' || component) {
-        const linkProps = {
-            href,
-            target,
-            rel: target === '_blank' && !rel ? 'noopener noreferrer' : rel,
-        };
+    if ('href' in props) {
+        return (
+            <a
+                {...commonProps}
+                ref={ref as React.Ref<HTMLAnchorElement>}
+                href={props.href}
+                target={props.target}
+                rel={props.target === '_blank' && !props.rel ? 'noopener noreferrer' : props.rel}
+                aria-disabled={disabledProp}
+                {...props.extraProps}
+            >
+                {content}
+            </a>
+        );
+    } else if ('as' in props) {
         return React.createElement(
-            component || 'a',
+            props.as || props.component,
             {
-                ...extraProps,
                 ...commonProps,
-                ...(component ? {} : linkProps),
-                ref: ref as React.Ref<HTMLAnchorElement>,
-                'aria-disabled': disabled || loading,
+                ref,
+                'aria-disabled': disabledProp,
+                ...props.extraProps,
             },
-            prepareChildren(children),
+            content,
         );
     } else {
         return (
             <button
-                {...(extraProps as React.ButtonHTMLAttributes<HTMLButtonElement>)}
                 {...commonProps}
                 ref={ref as React.Ref<HTMLButtonElement>}
-                type={type}
-                disabled={disabled || loading}
+                type={props.type}
+                disabled={disabledProp}
                 aria-pressed={selected}
+                {...props.extraProps}
             >
-                {prepareChildren(children)}
+                {content}
             </button>
         );
     }
