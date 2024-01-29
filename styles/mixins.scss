@@ -19,9 +19,18 @@
     cursor: pointer;
 }
 
-@mixin button-outline {
+@mixin focus-outline($position: relative) {
+    position: $position;
+
+    &::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+    }
+
     &:focus::before {
-        outline: 2px solid var(--yc-button-outline-color);
+        outline: 2px solid var(--g-color-line-focus);
     }
 
     &:focus:not(:focus-visible)::before {
