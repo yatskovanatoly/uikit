@@ -1,5 +1,5 @@
 @use '../../../styles/mixins';
-@use '../UserAvatar/mixins' as avatarMixins;
+@use '../UserAvatar/UserAvatar';
 @use '../variables';
 
 $block: '.#{variables.$ns-new}avatar-stack';
@@ -48,7 +48,7 @@ $block: '.#{variables.$ns-new}avatar-stack';
         background-color: var(--g-color-base-generic);
 
         &_size {
-            @include avatarMixins.size;
+            @include UserAvatar.size;
 
             &_xs {
                 font-size: var(--g-text-caption-1-font-size);
