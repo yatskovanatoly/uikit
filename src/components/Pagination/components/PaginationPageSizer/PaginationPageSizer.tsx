@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {Select} from '../../../Select';
+import i18n from '../../i18n';
 import type {PaginationProps, PaginationSize} from '../../types';
 import {getNumberOfPages} from '../../utils';
 
@@ -51,6 +52,7 @@ export const PaginationPageSizer = ({
             onUpdate={handleUpdate}
             options={options}
             value={[String(pageSize)]}
+            title={i18n('label_select_size')}
         />
     );
 };
