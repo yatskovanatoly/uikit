@@ -21,6 +21,9 @@ export const User = React.forwardRef<HTMLDivElement, UserProps>(
             className,
             style,
             qa,
+            alt,
+            avatarAriaLabel,
+            avatarAriaLabelledBy,
         },
         ref,
     ) => {
@@ -37,7 +40,17 @@ export const User = React.forwardRef<HTMLDivElement, UserProps>(
             >
                 {avatar ? (
                     <div className={b('avatar')}>
-                        {React.isValidElement(avatar) ? avatar : <Avatar {...avatar} size={size} />}
+                        {React.isValidElement(avatar) ? (
+                            avatar
+                        ) : (
+                            <Avatar
+                                {...avatar}
+                                size={size}
+                                alt={alt}
+                                aria-label={avatarAriaLabel}
+                                aria-labelledby={avatarAriaLabelledBy}
+                            />
+                        )}
                     </div>
                 ) : null}
                 {name || showDescription ? (

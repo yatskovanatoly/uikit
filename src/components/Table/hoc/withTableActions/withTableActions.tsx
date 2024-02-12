@@ -9,8 +9,10 @@ import {Menu} from '../../../Menu';
 import type {MenuItemProps} from '../../../Menu';
 import {Popup} from '../../../Popup';
 import {block} from '../../../utils/cn';
+import {getUniqId} from '../../../utils/common';
 import {getComponentName} from '../../../utils/getComponentName';
 import type {TableColumnConfig, TableDataItem, TableProps} from '../../Table';
+import i18n from '../../i18n';
 
 import './withTableActions.scss';
 
@@ -83,6 +85,7 @@ export function withTableActions<I extends TableDataItem, E extends {} = {}>(
 ): React.ComponentType<TableProps<I> & WithTableActionsProps<I> & E> {
     const componentName = getComponentName(TableComponent);
     const displayName = `withTableActions(${componentName})`;
+    const tableUniqueId = getUniqId();
 
     return class extends React.Component<
         TableProps<I> & WithTableActionsProps<I> & E,
@@ -119,6 +122,7 @@ export function withTableActions<I extends TableDataItem, E extends {} = {}>(
 
         private renderBodyCell = (item: I, index: number) => {
             const {isRowDisabled, getRowActions, rowActionsSize, getRowDescriptor} = this.props;
+            const {popupOpen, popupData} = this.state;
             const actions = getRowActions(item, index);
 
             if (actions.length === 0) {
@@ -136,12 +140,21 @@ export function withTableActions<I extends TableDataItem, E extends {} = {}>(
                         className={BUTTON_CLASSNAME}
                         onClick={this.handleActionsButtonClick.bind(this, {item, index})}
                         size={rowActionsSize}
+                        extraProps={{
+                            'aria-label': i18n('label-actions'),
+                            'aria-expanded': popupOpen && popupData?.index === index,
+                            'aria-controls': this.getPopupId(index),
+                        }}
                     >
                         <Icon data={Ellipsis} />
                     </Button>
                 </div>
             );
         };
+
+        private getPopupId(rowIndex: number) {
+            return `${tableUniqueId}-${rowIndex}`;
+        }
 
         private renderPopup() {
             const {getRowActions, rowActionsSize} = this.props;
@@ -159,6 +172,7 @@ export function withTableActions<I extends TableDataItem, E extends {} = {}>(
                     anchorRef={this.anchorRef}
                     placement={['bottom-end', 'top-end']}
                     onClose={this.handlePopupClose}
+                    id={this.getPopupId(popupData.index)}
                 >
                     <Menu className={bPopup('menu')} size={rowActionsSize}>
                         {actions.map(this.renderPopupMenuItem)}
